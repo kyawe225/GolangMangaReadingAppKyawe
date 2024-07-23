@@ -6,6 +6,7 @@ import (
 	consts "realPj/mangaReadingApp/const"
 	"realPj/mangaReadingApp/modules/shared/dtos"
 	"realPj/mangaReadingApp/utils"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,11 +20,18 @@ func CheckLoginUser(context *gin.Context) {
 		return
 	}
 
+	token = strings.Split(token, consts.AuthorizationTypeBearer)[1]
+	token = strings.Trim(token, " ")
 	dto, err := utils.ValidateToken(token)
 
 	if err != nil {
 		log.Println(err)
 		context.AbortWithStatusJSON(http.StatusUnauthorized, dtos.NewResponseDto("NG", "Please Login Again", "Please Login Again"))
+		return
+	}
+
+	if dto.Role != "admin" {
+		context.AbortWithStatusJSON(http.StatusForbidden, dtos.NewResponseDto("NG", "Forbidden Access", "Please Login With Another Account"))
 		return
 	}
 
