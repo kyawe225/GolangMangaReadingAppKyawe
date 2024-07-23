@@ -21,7 +21,12 @@ func newChapterController(repository repositories.IChapterRepository) chapterCon
 }
 
 func (controller *chapterController) index(context *gin.Context) {
-	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully fetch chapters", controller.repository.GetAll()))
+	var userId string
+	value, ok := context.Get("user")
+	if ok {
+		userId = value.(dtos.RegisterDto).Id
+	}
+	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully fetch chapters", controller.repository.GetAll(userId)))
 }
 
 func (controller *chapterController) detail(context *gin.Context) {
@@ -52,6 +57,11 @@ func (controller *chapterController) save(context *gin.Context) {
 		return
 	}
 
+	value, ok := context.Get("user")
+	if ok {
+		chapter.UserId = value.(*dtos.RegisterDto).Id
+	}
+
 	err = controller.repository.Save(&chapter)
 
 	if err != nil {
@@ -71,6 +81,11 @@ func (controller *chapterController) update(context *gin.Context) {
 		return
 	}
 
+	var userId string
+	value, ok := context.Get("user")
+	if ok {
+		userId = value.(*dtos.RegisterDto).Id
+	}
 	var chapter models.Chapter
 
 	err := context.ShouldBindBodyWithJSON(&chapter)
@@ -81,7 +96,7 @@ func (controller *chapterController) update(context *gin.Context) {
 		return
 	}
 
-	err = controller.repository.Update(id, &chapter)
+	err = controller.repository.Update(id, userId, &chapter)
 
 	if err != nil {
 		log.Println(err)
@@ -94,6 +109,11 @@ func (controller *chapterController) update(context *gin.Context) {
 func (controller *chapterController) delete(context *gin.Context) {
 
 	id := context.Param("id")
+	var userId string
+	value, ok := context.Get("user")
+	if ok {
+		userId = value.(*dtos.RegisterDto).Id
+	}
 
 	if id == "" {
 		log.Println("wrong request")
@@ -101,7 +121,7 @@ func (controller *chapterController) delete(context *gin.Context) {
 		return
 	}
 
-	err := controller.repository.Delete(id)
+	err := controller.repository.Delete(id, userId)
 
 	if err != nil {
 		log.Println(err)

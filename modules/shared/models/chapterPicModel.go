@@ -9,4 +9,6 @@ type ChapterPictures struct {
 	Serial      int64
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	UserId      string
+	User        User
 }

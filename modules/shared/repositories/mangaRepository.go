@@ -9,10 +9,10 @@ import (
 )
 
 type IMangaRepository interface {
-	GetAll() *[]models.Manga
+	GetAll(user_id string) *[]models.Manga
 	Save(model *models.Manga) error
-	Update(id string, model *models.Manga) error
-	Delete(id string) error
+	Update(id string, user_id string, model *models.Manga) error
+	Delete(id string, user_id string) error
 	FindById(id string) *models.Manga
 	FindByIdDto(id string) *dtos.MangaDetailDto
 	GetList() *[]dtos.MangaDto
@@ -21,19 +21,20 @@ type IMangaRepository interface {
 type MangaRepository struct {
 }
 
-func (manga MangaRepository) GetAll() *[]models.Manga {
+func (manga MangaRepository) GetAll(user_id string) *[]models.Manga {
 	var rows []models.Manga
 	query := `select mangas.*, category.*
 	from mangas
 	join manga_category on manga_category.manga_id = mangas.id
-	join category on manga_category.category_id = category.id`
-	resultRows, err := utils.DB.Query(query)
+	join category on manga_category.category_id = category.id
+	where user_id = ?`
+	resultRows, err := utils.DB.Query(query, user_id)
 	if err != nil {
 		panic(err)
 	}
 	for resultRows.Next() {
 		var row models.Manga
-		err = resultRows.Scan(&row.Id, &row.Name, &row.Description, &row.PublishDate, &row.IsPublished, &row.PublishUrl, &row.CreatedAt, &row.UpdatedAt, &row.Category.Id, &row.Category.Name, &row.Category.Description, &row.Category.CreatedAt, &row.Category.UpdatedAt)
+		err = resultRows.Scan(&row.Id, &row.Name, &row.Description, &row.PublishDate, &row.IsPublished, &row.PublishUrl, &row.UserId, &row.CreatedAt, &row.UpdatedAt, &row.Category.Id, &row.Category.Name, &row.Category.Description, &row.Category.CreatedAt, &row.Category.UpdatedAt)
 		if err != nil {
 			panic(err)
 		}
@@ -44,14 +45,14 @@ func (manga MangaRepository) GetAll() *[]models.Manga {
 
 func (manga MangaRepository) FindById(id string) *models.Manga {
 	var row models.Manga
-	query := `select * 
+	query := `select mangas.*,category.* 
 	from mangas
 	join manga_category on manga_category.manga_id = mangas.id
 	join category on manga_category.category_id = category.id
-	where id = ?
+	where mangas.id = ?
 	limit 1;`
 	resultRow := utils.DB.QueryRow(query, id)
-	err := resultRow.Scan(&row.Id, &row.Name, &row.Description, &row.PublishDate, &row.IsPublished, &row.PublishUrl, &row.CreatedAt, &row.UpdatedAt, &row.Category.Id, &row.Category.Name, &row.Category.Description, &row.Category.CreatedAt, &row.Category.UpdatedAt)
+	err := resultRow.Scan(&row.Id, &row.Name, &row.Description, &row.PublishDate, &row.IsPublished, &row.PublishUrl, &row.UserId, &row.CreatedAt, &row.UpdatedAt, &row.Category.Id, &row.Category.Name, &row.Category.Description, &row.Category.CreatedAt, &row.Category.UpdatedAt)
 	if err != nil {
 		panic(err)
 	}
@@ -65,10 +66,10 @@ func (manga MangaRepository) Save(model *models.Manga) error {
 		model.PublishUrl = uuid.NewString()
 	}
 	query := `
-		insert into mangas(id,name,description,publish_date,is_published,published_url)
-		values (?,?,?,?,?,?)
+		insert into mangas(id,name,description,publish_date,is_published,published_url,user_id)
+		values (?,?,?,?,?,?,?)
 	`
-	_, err := utils.DB.Exec(query, id, model.Name, model.Description, model.PublishDate, model.IsPublished, model.PublishUrl)
+	_, err := utils.DB.Exec(query, id, model.Name, model.Description, model.PublishDate, model.IsPublished, model.PublishUrl, model.UserId)
 
 	if err != nil {
 		panic(err)
@@ -88,12 +89,12 @@ func (manga MangaRepository) Save(model *models.Manga) error {
 	return nil
 }
 
-func (manga MangaRepository) Update(id string, model *models.Manga) error {
+func (manga MangaRepository) Update(id string, user_id string, model *models.Manga) error {
 	query := `
 		update mangas set name=? , description =? , publish_date = ?, is_published = ?,published_url =?
-		where id = ?
+		where id = ? and user_id = ?
 	`
-	_, err := utils.DB.Exec(query, model.Name, model.Description, model.PublishDate, model.IsPublished, model.PublishUrl, id)
+	_, err := utils.DB.Exec(query, model.Name, model.Description, model.PublishDate, model.IsPublished, model.PublishUrl, id, user_id)
 
 	if err != nil {
 		return err
@@ -119,12 +120,12 @@ func (manga MangaRepository) Update(id string, model *models.Manga) error {
 	return nil
 }
 
-func (manga MangaRepository) Delete(id string) error {
+func (manga MangaRepository) Delete(id string, user_id string) error {
 	query := `
 		delete from mangas
-		where id = ?;
+		where id = ? and user_id = ?;
 	`
-	_, err := utils.DB.Exec(query, id)
+	_, err := utils.DB.Exec(query, id, user_id)
 
 	if err != nil {
 		return err
@@ -137,7 +138,7 @@ This is for public Api
 */
 func (manga MangaRepository) GetList() *[]dtos.MangaDto {
 	var rows []dtos.MangaDto
-	var temp string
+	var temp, temp1 string
 	query := `select mangas.*, category.id as category_id,category.name as category_name
 	from mangas
 	join manga_category on manga_category.manga_id = mangas.id
@@ -149,7 +150,7 @@ func (manga MangaRepository) GetList() *[]dtos.MangaDto {
 	}
 	for resultRows.Next() {
 		var row dtos.MangaDto
-		err = resultRows.Scan(&temp, &row.Name, &row.Description, &row.PublishDate, &row.IsPublished, &row.PublishUrl, &row.CreatedAt, &row.UpdatedAt, &row.CategoryId, &row.CategoryName)
+		err = resultRows.Scan(&temp, &row.Name, &row.Description, &row.PublishDate, &row.IsPublished, &row.PublishUrl, &row.CreatedAt, &row.UpdatedAt, &temp1, &row.CategoryId, &row.CategoryName)
 		if err != nil {
 			panic(err)
 		}
@@ -168,7 +169,7 @@ func (manga MangaRepository) FindByIdDto(id string) *dtos.MangaDetailDto {
 	where published_url = ?
 	limit 1;`
 	resultRow := utils.DB.QueryRow(query, id)
-	err := resultRow.Scan(&temp, &row.Manga.Name, &row.Manga.Description, &row.Manga.PublishDate, &row.Manga.IsPublished, &row.Manga.PublishUrl, &row.Manga.CreatedAt, &row.Manga.UpdatedAt, &row.Manga.CategoryId, &row.Manga.CategoryName)
+	err := resultRow.Scan(&temp, &row.Manga.Name, &row.Manga.Description, &row.Manga.PublishDate, &row.Manga.IsPublished, &row.Manga.PublishUrl, &row.Manga.CreatedAt, &row.Manga.UpdatedAt, &temp1, &row.Manga.CategoryId, &row.Manga.CategoryName)
 	if err != nil {
 		panic(err)
 	}
@@ -184,7 +185,7 @@ func (manga MangaRepository) FindByIdDto(id string) *dtos.MangaDetailDto {
 
 	if rows.Next() {
 		var chapterDto dtos.ChapterDto
-		err := rows.Scan(&temp1, &chapterDto.MangaPublishedId, &chapterDto.ChapterName, &chapterDto.Name, &chapterDto.Description, &chapterDto.IsPublished, &chapterDto.PublishUrl, &chapterDto.CreatedAt, &chapterDto.UpdatedAt)
+		err := rows.Scan(&temp1, &chapterDto.MangaPublishedId, &chapterDto.ChapterName, &chapterDto.Name, &chapterDto.Description, &chapterDto.IsPublished, &chapterDto.PublishUrl, &chapterDto.CreatedAt, &chapterDto.UpdatedAt, &temp)
 
 		if err != nil {
 			panic(err)

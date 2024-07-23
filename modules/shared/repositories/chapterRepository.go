@@ -10,10 +10,10 @@ import (
 )
 
 type IChapterRepository interface {
-	GetAll() *[]models.Chapter
+	GetAll(user_id string) *[]models.Chapter
 	Save(model *models.Chapter) error
-	Update(id string, model *models.Chapter) error
-	Delete(id string) error
+	Update(id string, user_id string, model *models.Chapter) error
+	Delete(id string, user_id string) error
 	FindById(id string) (*models.Chapter, error)
 	GetListDto() *[]dtos.ChapterDto
 	FindByIdDto(id string) (*dtos.ChapterDetailDto, error)
@@ -22,7 +22,7 @@ type IChapterRepository interface {
 type ChapterRepository struct {
 }
 
-func (repository ChapterRepository) GetAll() *[]models.Chapter {
+func (repository ChapterRepository) GetAll(user_id string) *[]models.Chapter {
 	var chapters []models.Chapter
 
 	query := `
@@ -36,7 +36,7 @@ func (repository ChapterRepository) GetAll() *[]models.Chapter {
 	for resultRows.Next() {
 		var chapter models.Chapter
 
-		err = resultRows.Scan(&chapter.Id, &chapter.MangaId, &chapter.Name, &chapter.ChapterName, &chapter.Description, &chapter.IsPublished, &chapter.PublishUrl, &chapter.CreatedAt, &chapter.UpdatedAt)
+		err = resultRows.Scan(&chapter.Id, &chapter.MangaId, &chapter.Name, &chapter.ChapterName, &chapter.Description, &chapter.IsPublished, &chapter.PublishUrl, &chapter.UserId, &chapter.CreatedAt, &chapter.UpdatedAt)
 
 		if err != nil {
 			panic(err)
@@ -58,7 +58,7 @@ func (repository ChapterRepository) FindById(id string) (*models.Chapter, error)
 		return nil, err
 	}
 	if rows.Next() {
-		err := rows.Scan(&chapter.Id, &chapter.MangaId, &chapter.ChapterName, &chapter.Name, &chapter.Description, &chapter.IsPublished, &chapter.PublishUrl, &chapter.CreatedAt, &chapter.UpdatedAt)
+		err := rows.Scan(&chapter.Id, &chapter.MangaId, &chapter.ChapterName, &chapter.Name, &chapter.Description, &chapter.IsPublished, &chapter.PublishUrl, &chapter.UserId, &chapter.CreatedAt, &chapter.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -88,8 +88,8 @@ func (repository ChapterRepository) FindById(id string) (*models.Chapter, error)
 
 func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 	query := `
-	insert into chapter(id,manga_id,chapter_name,name,description,is_published,publish_url)
-	values(?,?,?,?,?,?,?);
+	insert into chapter(id,manga_id,chapter_name,name,description,is_published,publish_url,user_id)
+	values(?,?,?,?,?,?,?,?);
 	`
 	id := utils.GenerateUUIDV7()
 	var publishString string = ""
@@ -97,7 +97,7 @@ func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 		publishString = utils.GenerateUUIDV7()
 	}
 
-	_, err := utils.DB.Exec(query, id, model.MangaId, model.ChapterName, model.Name, model.Description, model.IsPublished, publishString)
+	_, err := utils.DB.Exec(query, id, model.MangaId, model.ChapterName, model.Name, model.Description, model.IsPublished, publishString, model.UserId)
 	if err != nil {
 		panic(err)
 	}
@@ -105,10 +105,10 @@ func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 
 		imgId := utils.GenerateUUIDV7()
 		query = `
-			insert into chapter_pictures(id,chapter_id,picture_data,serial)
-			values(?,?,?,?)
+			insert into chapter_pictures(id,chapter_id,picture_data,serial,user_id)
+			values(?,?,?,?,?)
 		`
-		_, err = utils.DB.Exec(query, imgId, id, value.PictureData, index+1)
+		_, err = utils.DB.Exec(query, imgId, id, value.PictureData, index+1, model.UserId)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -123,17 +123,17 @@ func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 	return nil
 }
 
-func (repository ChapterRepository) Update(id string, model *models.Chapter) error {
+func (repository ChapterRepository) Update(id string, user_id string, model *models.Chapter) error {
 	query := `
 		update chapter set chapter_name = ?, name=? , description =? , is_published = ?,publish_url =?
-		where id = ?
+		where id = ? and user_id =?
 	`
 	if !model.IsPublished {
 		model.PublishUrl = ""
 	} else if model.IsPublished && utils.IsEmpty(&model.PublishUrl) {
 		model.PublishUrl = utils.GenerateUUIDV7()
 	}
-	_, err := utils.DB.Exec(query, model.ChapterName, model.Name, model.Description, model.IsPublished, model.PublishUrl, id)
+	_, err := utils.DB.Exec(query, model.ChapterName, model.Name, model.Description, model.IsPublished, model.PublishUrl, id, user_id)
 
 	if err != nil {
 		return err
@@ -158,10 +158,10 @@ func (repository ChapterRepository) Update(id string, model *models.Chapter) err
 
 		imgId := uuidId.String()
 		query = `
-			insert into chapter_pictures(id,chapter_id,picture_data,serial)
-			values(?,?,?,?)
+			insert into chapter_pictures(id,chapter_id,picture_data,serial,user_id)
+			values(?,?,?,?,?)
 		`
-		_, err = utils.DB.Exec(query, imgId, id, value.PictureData, index+1)
+		_, err = utils.DB.Exec(query, imgId, id, value.PictureData, index+1, user_id)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -174,12 +174,12 @@ func (repository ChapterRepository) Update(id string, model *models.Chapter) err
 	return nil
 }
 
-func (repository ChapterRepository) Delete(id string) error {
+func (repository ChapterRepository) Delete(id string, user_id string) error {
 	query := `
 		delete from chapter
-		where id = ?;
+		where id = ? and user_id = ?;
 	`
-	_, err := utils.DB.Exec(query, id)
+	_, err := utils.DB.Exec(query, id, user_id)
 
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ func (repository ChapterRepository) GetListDto() *[]dtos.ChapterDto {
 	for resultRows.Next() {
 		var chapter dtos.ChapterDto
 
-		err = resultRows.Scan(&temp, &temp2, &chapter.Name, &chapter.ChapterName, &chapter.Description, &chapter.IsPublished, &chapter.PublishUrl, &chapter.CreatedAt, &chapter.UpdatedAt, &chapter.MangaPublishedId)
+		err = resultRows.Scan(&temp, &temp2, &chapter.Name, &chapter.ChapterName, &chapter.Description, &chapter.IsPublished, &chapter.PublishUrl, &temp2, &chapter.CreatedAt, &chapter.UpdatedAt, &chapter.MangaPublishedId)
 
 		if err != nil {
 			panic(err)
@@ -229,7 +229,7 @@ func (repository ChapterRepository) FindByIdDto(id string) (*dtos.ChapterDetailD
 		return nil, err
 	}
 	if rows.Next() {
-		err = rows.Scan(&temp, &temp2, &chapter.Name, &chapter.ChapterName, &chapter.Description, &chapter.IsPublished, &chapter.PublishUrl, &chapter.CreatedAt, &chapter.UpdatedAt, &chapter.MangaPublishedId)
+		err = rows.Scan(&temp, &temp2, &chapter.Name, &chapter.ChapterName, &chapter.Description, &chapter.IsPublished, &chapter.PublishUrl, &temp2, &chapter.CreatedAt, &chapter.UpdatedAt, &chapter.MangaPublishedId)
 		if err != nil {
 			return nil, err
 		}
@@ -246,7 +246,7 @@ func (repository ChapterRepository) FindByIdDto(id string) (*dtos.ChapterDetailD
 	i := 0
 	for row1.Next() {
 		var chapterPics models.ChapterPictures
-		err = row1.Scan(&chapterPics.ChapterId, &chapterPics.PictureData, &chapterPics.Id, &chapterPics.CreatedAt, &chapterPics.UpdatedAt, &chapterPics.Serial)
+		err = row1.Scan(&chapterPics.ChapterId, &chapterPics.PictureData, &chapterPics.Id, &temp2, &chapterPics.CreatedAt, &chapterPics.UpdatedAt, &chapterPics.Serial)
 		if err != nil {
 			return nil, err
 		}

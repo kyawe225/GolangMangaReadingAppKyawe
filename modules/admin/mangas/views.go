@@ -21,7 +21,12 @@ type MangaController struct {
 }
 
 func (controller *MangaController) index(context *gin.Context) {
-	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully Fetched Mangas", controller.repository.GetAll()))
+	var userId string
+	value, ok := context.Get("user")
+	if ok {
+		userId = value.(*dtos.RegisterDto).Id
+	}
+	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully Fetched Mangas", controller.repository.GetAll(userId)))
 }
 
 func (controller *MangaController) detail(context *gin.Context) {
@@ -39,7 +44,10 @@ func (controller *MangaController) save(context *gin.Context) {
 	var manga models.Manga
 
 	err := context.ShouldBindBodyWithJSON(&manga)
-
+	value, ok := context.Get("user")
+	if ok {
+		manga.UserId = value.(*dtos.RegisterDto).Id
+	}
 	if err != nil {
 		log.Println(err)
 		context.JSON(http.StatusBadRequest, dtos.NewResponseDto("NG", "Request Format Is Wrong", manga))
@@ -74,8 +82,13 @@ func (controller *MangaController) update(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, dtos.NewResponseDto("NG", "Request Format Is Wrong", manga))
 		return
 	}
+	var userId string
+	value, ok := context.Get("user")
+	if ok {
+		userId = value.(*dtos.RegisterDto).Id
+	}
 
-	err = controller.repository.Update(id, &manga)
+	err = controller.repository.Update(id, userId, &manga)
 
 	if err != nil {
 		log.Println(err)
@@ -94,8 +107,13 @@ func (controller *MangaController) delete(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, dtos.NewResponseDto("NG", "Request Format Is Wrong", id))
 		return
 	}
+	var userId string
+	value, ok := context.Get("user")
+	if ok {
+		userId = value.(*dtos.RegisterDto).Id
+	}
 
-	err := controller.repository.Delete(id)
+	err := controller.repository.Delete(id, userId)
 
 	if err != nil {
 		log.Println(err)

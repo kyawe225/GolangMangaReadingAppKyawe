@@ -13,4 +13,6 @@ type Chapter struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	ChapterPics []ChapterPictures `json:"chapter_pictures" require:"true"`
+	UserId      string
+	User        User
 }

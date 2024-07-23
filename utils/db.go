@@ -37,8 +37,10 @@ func initializeDatabase() {
 			publish_date datetime not null,
 			is_published tinyint not null default 0,
 			published_url varchar(255) not null,
+			user_id varchar(125) not null,
 			created_at datetime not null default CURRENT_TIMESTAMP ,
-			updated_at datetime not null default CURRENT_TIMESTAMP
+			updated_at datetime not null default CURRENT_TIMESTAMP,
+			foreign key (user_id) references user(id)
 		)
 	`
 
@@ -101,8 +103,10 @@ func initializeDatabase() {
 			description varchar(255) not null,
 			is_published tinyint default 0,
 			publish_url varchar(125) not null,
+			user_id varchar(125) not null,
 			created_at datetime not null default CURRENT_TIMESTAMP,
-			updated_at datetime not null default CURRENT_TIMESTAMP
+			updated_at datetime not null default CURRENT_TIMESTAMP,
+			foreign key (user_id) references user(id)
 		)
 	`
 	_, err = transaction.Exec(createChapterTable)
@@ -120,8 +124,10 @@ func initializeDatabase() {
 			picture_data text not null,
 			chapter_id varchar(125) not null,
 			serial int not null,
+			user_id varchar(125) not null,
 			created_at datetime not null default CURRENT_TIMESTAMP,
-			updated_at datetime not null default CURRENT_TIMESTAMP
+			updated_at datetime not null default CURRENT_TIMESTAMP,
+			foreign key (user_id) references user(id)
 		)
 	`
 
@@ -139,7 +145,7 @@ func initializeDatabase() {
 		create table if not exists users(
 			id varchar(125) primary key not null,
 			name varchar(225) not null,
-			email varchar(225) not null,
+			email varchar(225) not null unique,
 			password varchar(225) not null,
 			birthdate datetime not null,
 			role varchar(120) not null,
@@ -164,10 +170,10 @@ func initializeDatabase() {
 }
 
 func seed(transaction *sql.Tx) {
-	checkExists := `select count(*) from users email = ?`
+	checkExists := `select count(*) as j from users where email = ?`
 	var j int64 = -1
 	row := transaction.QueryRow(checkExists, "admin@gmail.com")
-	row.Scan(j)
+	row.Scan(&j)
 	if j == -1 || j == 0 {
 		id := GenerateUUIDV7()
 		password, _ := EncryptPassword("password")

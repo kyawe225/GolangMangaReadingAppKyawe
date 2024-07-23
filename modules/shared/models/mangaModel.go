@@ -15,4 +15,6 @@ type Manga struct {
 	UpdatedAt   time.Time
 	Category    Category
 	CategoryId  string `json:"category_id" require:"true"`
+	UserId      string
+	User        User
 }
