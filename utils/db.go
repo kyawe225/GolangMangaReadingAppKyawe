@@ -2,6 +2,7 @@ package utils
 
 import (
 	"database/sql"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -157,5 +158,43 @@ func initializeDatabase() {
 		panic(err)
 	}
 
+	seed(transaction)
+
 	transaction.Commit()
+}
+
+func seed(transaction *sql.Tx) {
+	checkExists := `select count(*) from users email = ?`
+	var j int64 = -1
+	row := transaction.QueryRow(checkExists, "admin@gmail.com")
+	row.Scan(j)
+	if j == -1 || j == 0 {
+		id := GenerateUUIDV7()
+		password, _ := EncryptPassword("password")
+
+		birthdate, err := time.Parse("2006-01-02", "2001-01-01")
+
+		if err != nil {
+			err1 := transaction.Rollback()
+			if err1 != nil {
+				panic(err1)
+			}
+			panic(err)
+		}
+
+		addUserData := `
+			insert into users(id,name,email,password,birthdate,role)
+			values(?,?,?,?,?,?)
+		`
+
+		_, err = transaction.Exec(addUserData, id, "admin", "admin@gmail.com", password, birthdate, "admin")
+
+		if err != nil {
+			err1 := transaction.Rollback()
+			if err1 != nil {
+				panic(err1)
+			}
+			panic(err)
+		}
+	}
 }
