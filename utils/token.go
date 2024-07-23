@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var mySigningKey []byte = []byte("Kfjakjfidfjnc!@!`#@%$@#@$*e9i0()(uUUo#@(!#((#$URI)EUQIORUj123415")
+var mySigningKey []byte = []byte("helloworld")
 
 func GenerateToken(user *models.User) (string, error) {
 
