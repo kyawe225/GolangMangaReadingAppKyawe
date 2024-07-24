@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	consts "realPj/mangaReadingApp/const"
 	"realPj/mangaReadingApp/modules/shared/dtos"
 	"realPj/mangaReadingApp/modules/shared/models"
 	"time"
@@ -9,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var mySigningKey []byte = []byte("helloworld")
+var mySigningKey []byte = []byte(consts.SecrectSignedKey)
 
 func GenerateToken(user *models.User) (string, error) {
 

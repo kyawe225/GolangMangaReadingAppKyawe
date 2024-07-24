@@ -30,7 +30,7 @@ func CheckLoginAdmin(context *gin.Context) {
 		return
 	}
 
-	if dto.Role == "admin" {
+	if dto.Role != "admin" {
 		context.AbortWithStatusJSON(http.StatusForbidden, dtos.NewResponseDto("NG", "Forbidden Access", "Please Login With Another Account"))
 		return
 	}
@@ -56,11 +56,6 @@ func CheckLoginUser(context *gin.Context) {
 	if err != nil {
 		log.Println(err)
 		context.AbortWithStatusJSON(http.StatusUnauthorized, dtos.NewResponseDto("NG", "Please Login Again", "Please Login Again"))
-		return
-	}
-
-	if dto.Role == "user" {
-		context.AbortWithStatusJSON(http.StatusForbidden, dtos.NewResponseDto("NG", "Forbidden Access", "Please Login With Another Account"))
 		return
 	}
 
