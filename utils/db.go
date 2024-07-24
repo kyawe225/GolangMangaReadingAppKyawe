@@ -172,10 +172,54 @@ func initializeDatabase() {
 			created_at datetime not null default CURRENT_TIMESTAMP,
 			updated_at datetime not null default CURRENT_TIMESTAMP,
 			foreign key(manga_id) references mangas(id),
-			foreign key(user_id) references user(id),
+			foreign key(user_id) references user(id)
 		)
 	`
 	_, err = transaction.Exec(createBookMarkTable)
+
+	if err != nil {
+		err1 := transaction.Rollback()
+		if err1 != nil {
+			panic(err1)
+		}
+		panic(err)
+	}
+
+	createRateTable := `
+		create table if not exists rate(
+			id varchar(125) primary key not null,
+			manga_id varchar(125) not null,
+			user_id varchar(125) not null,
+			stars int not null,
+			created_at datetime not null default CURRENT_TIMESTAMP,
+			updated_at datetime not null default CURRENT_TIMESTAMP,
+			foreign key(manga_id) references mangas(id),
+			foreign key(user_id) references user(id)
+		)
+	`
+	_, err = transaction.Exec(createRateTable)
+
+	if err != nil {
+		err1 := transaction.Rollback()
+		if err1 != nil {
+			panic(err1)
+		}
+		panic(err)
+	}
+
+	createCommentTable := `
+		create table if not exists comment(
+			id varchar(125) primary key not null,
+			chapter_id varchar(125) not null,
+			user_id varchar(125) not null,
+			message varchar(225) not null,
+			created_at datetime not null default CURRENT_TIMESTAMP,
+			updated_at datetime not null default CURRENT_TIMESTAMP,
+			foreign key(chapter_id) references chapter(id),
+			foreign key(user_id) references user(id)
+		)
+	`
+	_, err = transaction.Exec(createCommentTable)
 
 	if err != nil {
 		err1 := transaction.Rollback()
