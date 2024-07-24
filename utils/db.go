@@ -164,6 +164,27 @@ func initializeDatabase() {
 		panic(err)
 	}
 
+	createBookMarkTable := `
+		create table if not exists w(
+			id varchar(125) primary key not null,
+			manga_id varchar(125) not null,
+			user_id varchar(125) not null,
+			created_at datetime not null default CURRENT_TIMESTAMP,
+			updated_at datetime not null default CURRENT_TIMESTAMP,
+			foreign key(manga_id) references mangas(id),
+			foreign key(user_id) references user(id),
+		)
+	`
+	_, err = transaction.Exec(createBookMarkTable)
+
+	if err != nil {
+		err1 := transaction.Rollback()
+		if err1 != nil {
+			panic(err1)
+		}
+		panic(err)
+	}
+
 	seed(transaction)
 
 	transaction.Commit()
