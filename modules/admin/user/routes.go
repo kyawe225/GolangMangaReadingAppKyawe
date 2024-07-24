@@ -8,9 +8,10 @@ import (
 
 func RegisterRoutes(group *gin.RouterGroup) {
 	controller := newUserController(repositories.UserRepository{})
-	group.GET("", controller.index)
-	group.POST("/create", controller.save)
-	group.DELETE("/delete/:id", controller.delete)
-	group.PUT("/update/:id", controller.update)
-	group.GET("/:id", controller.detail)
+	userGroup := group.Group("/user")
+	userGroup.GET("/", controller.index)
+	userGroup.POST("/create", controller.save)
+	userGroup.DELETE("/delete/:id", controller.delete)
+	userGroup.PUT("/update/:id", controller.update)
+	userGroup.GET("/:id", controller.detail)
 }
