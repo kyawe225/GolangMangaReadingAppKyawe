@@ -102,12 +102,13 @@ func (user UserRepository) Delete(id string) error {
 
 func (repo UserRepository) FindById(id string) (*models.User, error) {
 	var user models.User
+	var n string
 	query := `select * 
 	from users
 	where id = ?
 	limit 1;`
 	resultRow := utils.DB.QueryRow(query, id)
-	err := resultRow.Scan(user.Id, user.Name, user.Email, user.Password, user.BirthDate, user.Role, user.CreatedAt, user.UpdatedAt)
+	err := resultRow.Scan(&user.Id, &user.Name, &user.Email, n, &user.BirthDate, &user.Role, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}

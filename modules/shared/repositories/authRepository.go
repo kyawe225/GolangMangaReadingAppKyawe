@@ -10,6 +10,7 @@ import (
 type IAuthRepository interface {
 	Register(model *dtos.RegisterDto) error
 	Login(model *dtos.LoginDto) (*string, error)
+	Profile(id string) (*models.User, error)
 }
 
 type AuthRepository struct {
@@ -61,4 +62,19 @@ func (auth AuthRepository) Login(model *dtos.LoginDto) (*string, error) {
 		return nil, err
 	}
 	return &tokenString, nil
+}
+
+func (repo AuthRepository) Profile(id string) (*models.User, error) {
+	var user models.User
+	var n string
+	query := `select * 
+	from users
+	where id = ?
+	limit 1;`
+	resultRow := utils.DB.QueryRow(query, id)
+	err := resultRow.Scan(&user.Id, &user.Name, &user.Email, n, &user.BirthDate, &user.Role, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
