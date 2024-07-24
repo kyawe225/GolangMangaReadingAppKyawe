@@ -165,7 +165,7 @@ func initializeDatabase() {
 	}
 
 	createBookMarkTable := `
-		create table if not exists w(
+		create table if not exists bookmark(
 			id varchar(125) primary key not null,
 			manga_id varchar(125) not null,
 			user_id varchar(125) not null,
