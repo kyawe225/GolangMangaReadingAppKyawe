@@ -7,11 +7,12 @@ import (
 )
 
 func RegisterRoutes(group *gin.RouterGroup) {
-	controller := newUserController(repositories.UserRepository{})
+	controller := newUserController(repositories.UserRepository{}, repositories.BookMarkRespotiroy{})
 	userGroup := group.Group("/user")
 	userGroup.GET("/", controller.index)
 	userGroup.POST("/create", controller.save)
 	userGroup.DELETE("/delete/:id", controller.delete)
 	userGroup.PUT("/update/:id", controller.update)
+	userGroup.GET("/bookmark", controller.bookmarkList)
 	userGroup.GET("/:id", controller.detail)
 }

@@ -10,14 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func newUserController(repository repositories.IUserRepository) UserController {
+func newUserController(repository repositories.IUserRepository, bookmark repositories.IBookMarkRepository) UserController {
 	return UserController{
-		repo: repository,
+		repo:     repository,
+		bookmark: bookmark,
 	}
 }
 
 type UserController struct {
-	repo repositories.IUserRepository
+	repo     repositories.IUserRepository
+	bookmark repositories.IBookMarkRepository
 }
 
 func (user UserController) index(context *gin.Context) {
@@ -102,4 +104,14 @@ func (controller *UserController) detail(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully Fetched Mangas", chapter))
+}
+
+func (controller *UserController) bookmarkList(context *gin.Context) {
+	bookmarks, err := controller.bookmark.ListAllWithoutUserId()
+	if err != nil {
+		log.Println(err)
+		context.JSON(http.StatusNotFound, dtos.NewResponseDto("NG", "Request Format Is Wrong", err))
+		return
+	}
+	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully Fetched Mangas", bookmarks))
 }

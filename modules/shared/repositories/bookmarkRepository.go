@@ -9,6 +9,7 @@ type IBookMarkRepository interface {
 	ListAll(user_id string) (*[]models.BookMark, error)
 	BookMarkManga(mangaPublishId string, user_id string) error
 	Delete(mangaPublishId string, user_id string) error
+	ListAllWithoutUserId() (*[]models.BookMark, error)
 }
 
 type BookMarkRespotiroy struct {
@@ -55,6 +56,27 @@ func (repository BookMarkRespotiroy) ListAll(user_id string) (*[]models.BookMark
 	for rows.Next() {
 		var model models.BookMark
 		rows.Scan(&model.Id, &model.MangaId, &model.UserId, &model.CreatedAt, &model.UpdatedAt, &model.Manga.Id, &model.Manga.Name, &model.Manga.Description, &model.Manga.PublishDate, &model.Manga.IsPublished, &model.Manga.PublishUrl, &model.Manga.UserId, &model.Manga.CreatedAt, &model.Manga.UpdatedAt)
+		arr = append(arr, model)
+	}
+	return &arr, nil
+}
+
+func (repository BookMarkRespotiroy) ListAllWithoutUserId() (*[]models.BookMark, error) {
+	var arr []models.BookMark
+	var temp string
+	query := `
+	select bookmark.*,mangas.*,user.* from bookmark join mangas on mangas.id = bookmark.manga_id join users on users.id = bookmark.user_id;
+	`
+	// var primaryKey
+	rows, err := utils.DB.Query(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var model models.BookMark
+		rows.Scan(&model.Id, &model.MangaId, &model.UserId, &model.CreatedAt, &model.UpdatedAt, &model.Manga.Id, &model.Manga.Name, &model.Manga.Description, &model.Manga.PublishDate, &model.Manga.IsPublished, &model.Manga.PublishUrl, &model.Manga.UserId, &model.Manga.CreatedAt, &model.Manga.UpdatedAt, &model.User.Id, &model.User.Name, &model.User.Email, &temp, &model.User.BirthDate, &model.User.Role, &model.User.CreatedAt, &model.User.UpdatedAt)
 		arr = append(arr, model)
 	}
 	return &arr, nil
