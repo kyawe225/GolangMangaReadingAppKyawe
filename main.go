@@ -4,7 +4,8 @@ import (
 	"realPj/mangaReadingApp/docs"
 	"realPj/mangaReadingApp/modules/admin"
 	"realPj/mangaReadingApp/modules/auth"
-	"realPj/mangaReadingApp/modules/user"
+	"realPj/mangaReadingApp/modules/authuser"
+	"realPj/mangaReadingApp/modules/normal"
 	"realPj/mangaReadingApp/utils"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,8 @@ func main() {
 
 	admin.RegisterRoutes(server)
 	auth.RegisterRoutes(server)
-	user.RegisterRoutes(server)
+	normal.RegisterRoutes(server)
+	authuser.RegisterRoutes(server)
 
 	defer utils.DB.Close()
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
