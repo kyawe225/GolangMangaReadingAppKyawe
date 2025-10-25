@@ -50,7 +50,7 @@ func (repository ChapterRepository) GetAll(user_id string) *[]models.Chapter {
 func (repository ChapterRepository) FindById(id string) (*models.Chapter, error) {
 	var chapter models.Chapter
 	query := `
-		select * from chapter where id = ?;
+		select * from chapter where id = $1;
 	`
 
 	rows, err := utils.DB.Query(query, id)
@@ -66,7 +66,7 @@ func (repository ChapterRepository) FindById(id string) (*models.Chapter, error)
 	}
 
 	pictureQuery := `
-		select * from chapter_pictures where chapter_id = ?;
+		select * from chapter_pictures where chapter_id = $1;
 	`
 	row1, err := utils.DB.Query(pictureQuery, id)
 	if err != nil {
@@ -95,7 +95,7 @@ func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 
 	query := `
 	insert into chapter(id,manga_id,chapter_name,name,description,is_published,publish_url,user_id)
-	values(?,?,?,?,?,?,?,?);
+	values($1,$2,$3,$4,$5,$6,$7,$8);
 	`
 	id := utils.GenerateUUIDV7()
 	var publishString string = ""
@@ -113,7 +113,7 @@ func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 		imgId := utils.GenerateUUIDV7()
 		query = `
 			insert into chapter_pictures(id,chapter_id,picture_data,serial,user_id)
-			values(?,?,?,?,?)
+			values($1,$2,$3,$4,$5);
 		`
 		_, err = transaction.Exec(query, imgId, id, value.PictureData, index+1, model.UserId)
 		if err != nil {
@@ -141,8 +141,8 @@ func (repository ChapterRepository) Update(id string, user_id string, model *mod
 		panic(errs)
 	}
 	query := `
-		update chapter set chapter_name = ?, name=? , description =? , is_published = ?,publish_url =?
-		where id = ? and user_id =?
+		update chapter set chapter_name = $1, name=$2 , description =$3 , is_published = $4,publish_url =$5
+		where id = $6 and user_id =$7;
 	`
 	if !model.IsPublished {
 		model.PublishUrl = ""
@@ -157,7 +157,7 @@ func (repository ChapterRepository) Update(id string, user_id string, model *mod
 	}
 
 	deleteQuery := `
-		delete from chapter_pictures where chapter_id = ? 
+		delete from chapter_pictures where chapter_id = $1;
 	`
 
 	_, err = transaction.Exec(deleteQuery, id)
@@ -177,7 +177,7 @@ func (repository ChapterRepository) Update(id string, user_id string, model *mod
 		imgId := uuidId.String()
 		query = `
 			insert into chapter_pictures(id,chapter_id,picture_data,serial,user_id)
-			values(?,?,?,?,?)
+			values($1,$2,$3,$4,$5)
 		`
 		_, err = transaction.Exec(query, imgId, id, value.PictureData, index+1, user_id)
 		if err != nil {
@@ -206,7 +206,7 @@ func (repository ChapterRepository) Delete(id string, user_id string) error {
 
 	query := `
 		delete from chapter
-		where id = ? and user_id = ?;
+		where id = $1 and user_id = $2;
 	`
 	_, err := transaction.Exec(query, id, user_id)
 
@@ -263,7 +263,7 @@ func (repository ChapterRepository) FindByIdDto(id string) (*dtos.ChapterDetailD
 	query := `
 		select chapter.*,mangas.published_url as manga_published_id from chapter
 		join mangas on mangas.id = chapter.manga_id and mangas.is_published = 1
-		where chapter.publish_url = ?;
+		where chapter.publish_url = $1;
 	`
 
 	rows, err := utils.DB.Query(query, id)
@@ -279,7 +279,7 @@ func (repository ChapterRepository) FindByIdDto(id string) (*dtos.ChapterDetailD
 	}
 
 	pictureQuery := `
-		select * from chapter_pictures where chapter_id = ?;
+		select * from chapter_pictures where chapter_id = $1;
 	`
 	row1, err := utils.DB.Query(pictureQuery, temp)
 	if err != nil {

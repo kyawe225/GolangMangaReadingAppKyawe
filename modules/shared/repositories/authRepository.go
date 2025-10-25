@@ -26,7 +26,7 @@ func (auth AuthRepository) Register(model *dtos.RegisterDto) error {
 	}
 	query := `
 		insert into users(id,name,email,password,birthdate,role)
-		values(?,?,?,?,?,?)
+		values($1,$2,$3,$4,$5,$6);
 	`
 	_, err = utils.DB.Exec(query, id, model.Name, model.Email, password, model.BirthDate, "user")
 
@@ -43,7 +43,7 @@ func (auth AuthRepository) Register(model *dtos.RegisterDto) error {
 
 func (auth AuthRepository) Login(model *dtos.LoginDto) (*string, error) {
 	query := `
-		select * from users where email = ?
+		select * from users where email = $1;
 	`
 	row := utils.DB.QueryRow(query, model.Email)
 
@@ -67,9 +67,9 @@ func (auth AuthRepository) Login(model *dtos.LoginDto) (*string, error) {
 func (repo AuthRepository) Profile(id string) (*models.User, error) {
 	var user models.User
 	var n string
-	query := `select * 
+	query := `select *
 	from users
-	where id = ?
+	where id = $1
 	limit 1;`
 	resultRow := utils.DB.QueryRow(query, id)
 	err := resultRow.Scan(&user.Id, &user.Name, &user.Email, n, &user.BirthDate, &user.Role, &user.CreatedAt, &user.UpdatedAt)

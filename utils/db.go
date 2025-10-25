@@ -2,16 +2,17 @@ package utils
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 var DB *sql.DB
 
 func InitDB() {
 	var err error
-	DB, err = sql.Open("sqlite3", "file:sample.sqlite?cache=shared")
+	DB, err = sql.Open("pgx", "user=postgres password=kyawe host=localhost port=5432 database=manga_database sslmode=disable")
 
 	if err != nil {
 		panic(err)
@@ -29,18 +30,41 @@ func initializeDatabase() {
 		panic(err)
 	}
 
+	createUserTable := `
+		create table if not exists users(
+			id varchar(125) primary key not null,
+			name varchar(225) not null,
+			email varchar(225) not null unique,
+			password varchar(225) not null,
+			birthdate date not null,
+			role varchar(120) not null,
+			created_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP
+		)
+	`
+
+	_, err = transaction.Exec(createUserTable)
+
+	if err != nil {
+		err1 := transaction.Rollback()
+		if err1 != nil {
+			panic(err1)
+		}
+		panic(err)
+	}
+
 	createMangaTable := `
 		create table if not exists mangas(
-			id varchar(125) primary key, 
+			id varchar(125) primary key,
 			name varchar(255) not null,
 			description varchar(255) not null,
-			publish_date datetime not null,
-			is_published tinyint not null default 0,
+			publish_date TIMESTAMP WITH TIME ZONE not null,
+			is_published smallint not null default 0,
 			published_url varchar(255) not null,
 			user_id varchar(125) not null,
-			created_at datetime not null default CURRENT_TIMESTAMP ,
-			updated_at datetime not null default CURRENT_TIMESTAMP,
-			foreign key (user_id) references user(id)
+			created_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP ,
+			updated_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP,
+			foreign key (user_id) references users(id)
 		)
 	`
 
@@ -56,11 +80,11 @@ func initializeDatabase() {
 
 	createCategoryTable := `
 		create table if not exists category(
-			id varchar(125) primary key, 
+			id varchar(125) primary key,
 			name varchar(255) not null,
 			description varchar(255) not null,
-			created_at datetime not null default CURRENT_TIMESTAMP ,
-			updated_at datetime not null default CURRENT_TIMESTAMP
+			created_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP ,
+			updated_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP
 		)
 	`
 	_, err = transaction.Exec(createCategoryTable)
@@ -75,11 +99,11 @@ func initializeDatabase() {
 
 	createMangaCategoryTable := `
 		create table if not exists manga_category(
-			id varchar(125) primary key, 
+			id varchar(125) primary key,
 			manga_id varchar(125) not null,
 			category_id varchar(125) not null,
-			created_at datetime not null default CURRENT_TIMESTAMP ,
-			updated_at datetime not null default CURRENT_TIMESTAMP,
+			created_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP ,
+			updated_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP,
 			foreign key(manga_id) references mangas(id),
 			foreign key(category_id) references category(id)
 		)
@@ -101,12 +125,12 @@ func initializeDatabase() {
 			chapter_name varchar(255) not null,
 			name varchar(225) not null,
 			description varchar(255) not null,
-			is_published tinyint default 0,
+			is_published smallint default 0,
 			publish_url varchar(125) not null,
 			user_id varchar(125) not null,
-			created_at datetime not null default CURRENT_TIMESTAMP,
-			updated_at datetime not null default CURRENT_TIMESTAMP,
-			foreign key (user_id) references user(id)
+			created_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP,
+			foreign key (user_id) references users(id)
 		)
 	`
 	_, err = transaction.Exec(createChapterTable)
@@ -125,101 +149,13 @@ func initializeDatabase() {
 			chapter_id varchar(125) not null,
 			serial int not null,
 			user_id varchar(125) not null,
-			created_at datetime not null default CURRENT_TIMESTAMP,
-			updated_at datetime not null default CURRENT_TIMESTAMP,
-			foreign key (user_id) references user(id)
+			created_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE not null default CURRENT_TIMESTAMP,
+			foreign key (user_id) references users(id)
 		)
 	`
 
 	_, err = transaction.Exec(createChapterPictureTable)
-
-	if err != nil {
-		err1 := transaction.Rollback()
-		if err1 != nil {
-			panic(err1)
-		}
-		panic(err)
-	}
-
-	createUserTable := `
-		create table if not exists users(
-			id varchar(125) primary key not null,
-			name varchar(225) not null,
-			email varchar(225) not null unique,
-			password varchar(225) not null,
-			birthdate datetime not null,
-			role varchar(120) not null,
-			created_at datetime not null default CURRENT_TIMESTAMP,
-			updated_at datetime not null default CURRENT_TIMESTAMP
-		)
-	`
-
-	_, err = transaction.Exec(createUserTable)
-
-	if err != nil {
-		err1 := transaction.Rollback()
-		if err1 != nil {
-			panic(err1)
-		}
-		panic(err)
-	}
-
-	createBookMarkTable := `
-		create table if not exists bookmark(
-			id varchar(125) primary key not null,
-			manga_id varchar(125) not null,
-			user_id varchar(125) not null,
-			created_at datetime not null default CURRENT_TIMESTAMP,
-			updated_at datetime not null default CURRENT_TIMESTAMP,
-			foreign key(manga_id) references mangas(id),
-			foreign key(user_id) references user(id)
-		)
-	`
-	_, err = transaction.Exec(createBookMarkTable)
-
-	if err != nil {
-		err1 := transaction.Rollback()
-		if err1 != nil {
-			panic(err1)
-		}
-		panic(err)
-	}
-
-	createRateTable := `
-		create table if not exists rate(
-			id varchar(125) primary key not null,
-			manga_id varchar(125) not null,
-			user_id varchar(125) not null,
-			stars int not null,
-			created_at datetime not null default CURRENT_TIMESTAMP,
-			updated_at datetime not null default CURRENT_TIMESTAMP,
-			foreign key(manga_id) references mangas(id),
-			foreign key(user_id) references user(id)
-		)
-	`
-	_, err = transaction.Exec(createRateTable)
-
-	if err != nil {
-		err1 := transaction.Rollback()
-		if err1 != nil {
-			panic(err1)
-		}
-		panic(err)
-	}
-
-	createCommentTable := `
-		create table if not exists comment(
-			id varchar(125) primary key not null,
-			chapter_id varchar(125) not null,
-			user_id varchar(125) not null,
-			message varchar(225) not null,
-			created_at datetime not null default CURRENT_TIMESTAMP,
-			updated_at datetime not null default CURRENT_TIMESTAMP,
-			foreign key(chapter_id) references chapter(id),
-			foreign key(user_id) references user(id)
-		)
-	`
-	_, err = transaction.Exec(createCommentTable)
 
 	if err != nil {
 		err1 := transaction.Rollback()
@@ -235,7 +171,7 @@ func initializeDatabase() {
 }
 
 func seed(transaction *sql.Tx) {
-	checkExists := `select count(*) as j from users where email = ?`
+	checkExists := `select count(*) as j from users where email = $1;`
 	var j int64 = -1
 	row := transaction.QueryRow(checkExists, "admin@gmail.com")
 	row.Scan(&j)
@@ -255,9 +191,9 @@ func seed(transaction *sql.Tx) {
 
 		addUserData := `
 			insert into users(id,name,email,password,birthdate,role)
-			values(?,?,?,?,?,?)
+			values($1,$2,$3,$4,$5,$6);
 		`
-
+		fmt.Println(addUserData)
 		_, err = transaction.Exec(addUserData, id, "admin", "admin@gmail.com", password, birthdate, "admin")
 
 		if err != nil {
