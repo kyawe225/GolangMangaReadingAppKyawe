@@ -87,6 +87,12 @@ func (repository ChapterRepository) FindById(id string) (*models.Chapter, error)
 }
 
 func (repositroy ChapterRepository) Save(model *models.Chapter) error {
+	transaction, errs := utils.DB.Begin()
+
+	if errs != nil {
+		panic(errs)
+	}
+
 	query := `
 	insert into chapter(id,manga_id,chapter_name,name,description,is_published,publish_url,user_id)
 	values($1,$2,$3,$4,$5,$6,$7,$8);
@@ -97,8 +103,9 @@ func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 		publishString = utils.GenerateUUIDV7()
 	}
 
-	_, err := utils.DB.Exec(query, id, model.MangaId, model.ChapterName, model.Name, model.Description, model.IsPublished, publishString, model.UserId)
+	_, err := transaction.Exec(query, id, model.MangaId, model.ChapterName, model.Name, model.Description, model.IsPublished, publishString, model.UserId)
 	if err != nil {
+		transaction.Rollback()
 		panic(err)
 	}
 	for index, value := range model.ChapterPics {
@@ -108,8 +115,9 @@ func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 			insert into chapter_pictures(id,chapter_id,picture_data,serial,user_id)
 			values($1,$2,$3,$4,$5);
 		`
-		_, err = utils.DB.Exec(query, imgId, id, value.PictureData, index+1, model.UserId)
+		_, err = transaction.Exec(query, imgId, id, value.PictureData, index+1, model.UserId)
 		if err != nil {
+			transaction.Rollback()
 			log.Println(err)
 			continue
 		}
@@ -117,13 +125,21 @@ func (repositroy ChapterRepository) Save(model *models.Chapter) error {
 		model.ChapterPics[index].ChapterId = id
 		model.ChapterPics[index].Serial = int64(index + 1)
 	}
-
+	err = transaction.Commit()
+	if err != nil {
+		panic(err)
+	}
 	model.Id = id
 
 	return nil
 }
 
 func (repository ChapterRepository) Update(id string, user_id string, model *models.Chapter) error {
+	transaction, errs := utils.DB.Begin()
+
+	if errs != nil {
+		panic(errs)
+	}
 	query := `
 		update chapter set chapter_name = $1, name=$2 , description =$3 , is_published = $4,publish_url =$5
 		where id = $6 and user_id =$7;
@@ -133,9 +149,10 @@ func (repository ChapterRepository) Update(id string, user_id string, model *mod
 	} else if model.IsPublished && utils.IsEmpty(&model.PublishUrl) {
 		model.PublishUrl = utils.GenerateUUIDV7()
 	}
-	_, err := utils.DB.Exec(query, model.ChapterName, model.Name, model.Description, model.IsPublished, model.PublishUrl, id, user_id)
+	_, err := transaction.Exec(query, model.ChapterName, model.Name, model.Description, model.IsPublished, model.PublishUrl, id, user_id)
 
 	if err != nil {
+		transaction.Rollback()
 		return err
 	}
 
@@ -143,7 +160,7 @@ func (repository ChapterRepository) Update(id string, user_id string, model *mod
 		delete from chapter_pictures where chapter_id = $1;
 	`
 
-	_, err = utils.DB.Exec(deleteQuery, id)
+	_, err = transaction.Exec(deleteQuery, id)
 
 	if err != nil {
 		return err
@@ -153,6 +170,7 @@ func (repository ChapterRepository) Update(id string, user_id string, model *mod
 		uuidId, err := uuid.NewV7()
 
 		if err != nil {
+			transaction.Rollback()
 			panic(err)
 		}
 
@@ -161,8 +179,9 @@ func (repository ChapterRepository) Update(id string, user_id string, model *mod
 			insert into chapter_pictures(id,chapter_id,picture_data,serial,user_id)
 			values($1,$2,$3,$4,$5)
 		`
-		_, err = utils.DB.Exec(query, imgId, id, value.PictureData, index+1, user_id)
+		_, err = transaction.Exec(query, imgId, id, value.PictureData, index+1, user_id)
 		if err != nil {
+			transaction.Rollback()
 			log.Println(err)
 			continue
 		}
@@ -170,20 +189,43 @@ func (repository ChapterRepository) Update(id string, user_id string, model *mod
 		model.ChapterPics[index].ChapterId = id
 		model.ChapterPics[index].Serial = int64(index + 1)
 	}
-
+	transaction.Commit()
+	if err != nil {
+		panic(err)
+	}
 	return nil
 }
 
 func (repository ChapterRepository) Delete(id string, user_id string) error {
+
+	transaction, errs := utils.DB.Begin()
+
+	if errs != nil {
+		panic(errs)
+	}
+
 	query := `
 		delete from chapter
 		where id = $1 and user_id = $2;
 	`
-	_, err := utils.DB.Exec(query, id, user_id)
+	_, err := transaction.Exec(query, id, user_id)
 
 	if err != nil {
+		transaction.Rollback()
 		return err
 	}
+	deleteQuery := `
+		delete from chapter_pictures where chapter_id = ? 
+	`
+
+	_, err = transaction.Exec(deleteQuery, id)
+
+	if err != nil {
+		transaction.Rollback()
+		return err
+	}
+
+	transaction.Commit()
 	return nil
 }
 
