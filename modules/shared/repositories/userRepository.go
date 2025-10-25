@@ -56,7 +56,7 @@ func (user UserRepository) Save(model *models.User) error {
 
 	query := `
 		insert into users(id,name,email,password,birthdate,role)
-		values(?,?,?,?,?,?);
+		values($1,$2,$3,$4,$5,$6);
 	`
 
 	_, err = utils.DB.Exec(query, id, model.Name, model.Email, password, model.BirthDate, model.Role)
@@ -72,8 +72,8 @@ func (user UserRepository) Save(model *models.User) error {
 func (user UserRepository) Update(id string, model *models.User) error {
 
 	query := `
-		update users set name=?,email=?,birthdate=?,role=?
-		where id=?;
+		update users set name=$1,email=$2,birthdate=$3,role=$4
+		where id=$5;
 	`
 
 	_, err := utils.DB.Exec(query, model.Name, model.Email, model.BirthDate, model.Role, id)
@@ -89,7 +89,7 @@ func (user UserRepository) Update(id string, model *models.User) error {
 
 func (user UserRepository) Delete(id string) error {
 	query := `
-		delete from users where id = ?
+		delete from users where id = $1;
 	`
 	_, err := utils.DB.Exec(query, id)
 
@@ -103,9 +103,9 @@ func (user UserRepository) Delete(id string) error {
 func (repo UserRepository) FindById(id string) (*models.User, error) {
 	var user models.User
 	var n string
-	query := `select * 
+	query := `select *
 	from users
-	where id = ?
+	where id = $1
 	limit 1;`
 	resultRow := utils.DB.QueryRow(query, id)
 	err := resultRow.Scan(&user.Id, &user.Name, &user.Email, n, &user.BirthDate, &user.Role, &user.CreatedAt, &user.UpdatedAt)

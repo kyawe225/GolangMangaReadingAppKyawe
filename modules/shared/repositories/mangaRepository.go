@@ -27,7 +27,7 @@ func (manga MangaRepository) GetAll(user_id string) *[]models.Manga {
 	from mangas
 	join manga_category on manga_category.manga_id = mangas.id
 	join category on manga_category.category_id = category.id
-	where user_id = ?`
+	where user_id = $1`
 	resultRows, err := utils.DB.Query(query, user_id)
 	if err != nil {
 		panic(err)
@@ -45,11 +45,11 @@ func (manga MangaRepository) GetAll(user_id string) *[]models.Manga {
 
 func (manga MangaRepository) FindById(id string) *models.Manga {
 	var row models.Manga
-	query := `select mangas.*,category.* 
+	query := `select mangas.*,category.*
 	from mangas
 	join manga_category on manga_category.manga_id = mangas.id
 	join category on manga_category.category_id = category.id
-	where mangas.id = ?
+	where mangas.id = $1
 	limit 1;`
 	resultRow := utils.DB.QueryRow(query, id)
 	err := resultRow.Scan(&row.Id, &row.Name, &row.Description, &row.PublishDate, &row.IsPublished, &row.PublishUrl, &row.UserId, &row.CreatedAt, &row.UpdatedAt, &row.Category.Id, &row.Category.Name, &row.Category.Description, &row.Category.CreatedAt, &row.Category.UpdatedAt)
@@ -67,7 +67,7 @@ func (manga MangaRepository) Save(model *models.Manga) error {
 	}
 	query := `
 		insert into mangas(id,name,description,publish_date,is_published,published_url,user_id)
-		values (?,?,?,?,?,?,?)
+		values ($1,$2,$3,$4,$5,$6,$7)
 	`
 	_, err := utils.DB.Exec(query, id, model.Name, model.Description, model.PublishDate, model.IsPublished, model.PublishUrl, model.UserId)
 
@@ -91,8 +91,8 @@ func (manga MangaRepository) Save(model *models.Manga) error {
 
 func (manga MangaRepository) Update(id string, user_id string, model *models.Manga) error {
 	query := `
-		update mangas set name=? , description =? , publish_date = ?, is_published = ?,published_url =?
-		where id = ? and user_id = ?
+		update mangas set name=$1 , description =$2 , publish_date = $3, is_published = $4,published_url =$5
+		where id = $6 and user_id = $7
 	`
 	_, err := utils.DB.Exec(query, model.Name, model.Description, model.PublishDate, model.IsPublished, model.PublishUrl, id, user_id)
 
@@ -100,7 +100,7 @@ func (manga MangaRepository) Update(id string, user_id string, model *models.Man
 		return err
 	}
 
-	query = `delete from manga_category where manga_id = ?`
+	query = `delete from manga_category where manga_id = $1;`
 
 	_, err = utils.DB.Exec(query, id)
 	if err != nil {
@@ -109,7 +109,7 @@ func (manga MangaRepository) Update(id string, user_id string, model *models.Man
 
 	uniqueId, _ := uuid.NewV7()
 	mangaCategoryId := uniqueId.String()
-	query = `insert into manga_category(id,manga_id,category_id) values(?,?,?)`
+	query = `insert into manga_category(id,manga_id,category_id) values($1,$2,$3)`
 
 	_, err = utils.DB.Exec(query, mangaCategoryId, id, model.CategoryId)
 
@@ -123,7 +123,7 @@ func (manga MangaRepository) Update(id string, user_id string, model *models.Man
 func (manga MangaRepository) Delete(id string, user_id string) error {
 	query := `
 		delete from mangas
-		where id = ? and user_id = ?;
+		where id = $1 and user_id = $2;
 	`
 	_, err := utils.DB.Exec(query, id, user_id)
 
@@ -166,7 +166,7 @@ func (manga MangaRepository) FindByIdDto(id string) *dtos.MangaDetailDto {
 	from mangas
 	join manga_category on manga_category.manga_id = mangas.id
 	join category on manga_category.category_id = category.id
-	where published_url = ?
+	where published_url = $1
 	limit 1;`
 	resultRow := utils.DB.QueryRow(query, id)
 	err := resultRow.Scan(&temp, &row.Manga.Name, &row.Manga.Description, &row.Manga.PublishDate, &row.Manga.IsPublished, &row.Manga.PublishUrl, &row.Manga.CreatedAt, &row.Manga.UpdatedAt, &temp1, &row.Manga.CategoryId, &row.Manga.CategoryName)
@@ -176,7 +176,7 @@ func (manga MangaRepository) FindByIdDto(id string) *dtos.MangaDetailDto {
 
 	query = `
 		select * from chapter
-		where manga_id = ?;
+		where manga_id = $1;
 	`
 	rows, err := utils.DB.Query(query, temp)
 	if err != nil {
