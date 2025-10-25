@@ -51,7 +51,7 @@ func (repository CategoryRepository) Save(model *models.Category) error {
 
 	query := `
 		insert into category(id,name,description)
-		values(?,?,?)
+		values($1,$2,$3)
 	`
 
 	_, err = utils.DB.Exec(query, id.String(), model.Name, model.Description)
@@ -66,8 +66,8 @@ func (repository CategoryRepository) Save(model *models.Category) error {
 
 func (repository CategoryRepository) Update(id string, model *models.Category) error {
 	query := `
-		update category set name = ?,description = ?
-		where id = ?;
+		update category set name = $1,description = $2
+		where id = $3;
 	`
 
 	_, err := utils.DB.Exec(query, model.Name, model.Description, id)
@@ -82,7 +82,7 @@ func (repository CategoryRepository) Update(id string, model *models.Category) e
 func (manga CategoryRepository) Delete(id string) error {
 	query := `
 		delete from category
-		where id = ?;
+		where id = $1;
 	`
 	_, err := utils.DB.Exec(query, id)
 

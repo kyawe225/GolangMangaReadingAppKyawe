@@ -1,13 +1,13 @@
 package dtos
 
-type ResponseDto[T any] struct {
+type responseDto[T any] struct {
 	Status  string
 	Message string
 	Model   T
 }
 
-func NewResponseDto[T any](status string, message string, model T) ResponseDto[T] {
-	return ResponseDto[T]{
+func NewResponseDto[T any](status string, message string, model T) responseDto[T] {
+	return responseDto[T]{
 		Status:  status,
 		Message: message,
 		Model:   model,
