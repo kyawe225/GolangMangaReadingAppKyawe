@@ -41,7 +41,7 @@ func (controller *AuthController) login(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, dtos.NewResponseDto("NG", "Incorrect Email Or Password", model))
 		return
 	}
-	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Login Successfully", map[string]string{"Login_Token": (*token)}))
+	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Login Successfully", map[string]string{"access_token": (*token)}))
 }
 
 // @BasePath /auth/
