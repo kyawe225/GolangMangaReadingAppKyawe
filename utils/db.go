@@ -3,6 +3,7 @@ package utils
 import (
 	"database/sql"
 	"fmt"
+	"realPj/mangaReadingApp/configs"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -11,8 +12,11 @@ import (
 var DB *sql.DB
 
 func InitDB() {
+	dbConfig := configs.GetDbConfigs()
+	connectionString := dbConfig.GetConnectionString()
+
 	var err error
-	DB, err = sql.Open("pgx", "user=postgres password=kyawe host=localhost port=5432 database=manga_database sslmode=disable")
+	DB, err = sql.Open("pgx", connectionString)
 
 	if err != nil {
 		panic(err)
@@ -22,6 +26,10 @@ func InitDB() {
 	DB.SetMaxOpenConns(5)
 
 	initializeDatabase()
+}
+
+func GetDbConfigs() *configs.DbConfigs {
+	return configs.GetDbConfigs()
 }
 
 func initializeDatabase() {
