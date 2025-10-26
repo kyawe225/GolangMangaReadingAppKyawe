@@ -20,10 +20,28 @@ type CategoriesController struct {
 	repository repositories.ICategoryRepository
 }
 
+// @BasePath /categories/
+// @Summary Categories All List
+// @Schemes
+// @Description get the all list of categories
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /categories [get]
 func (controller *CategoriesController) index(context *gin.Context) {
 	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Categories are successfully fetched", controller.repository.GetAll()))
 }
 
+// @BasePath /categories/
+// @Summary Create Categories
+// @Schemes Category
+// @Description Create the manga categories
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /categories [post]
 func (controller *CategoriesController) save(context *gin.Context) {
 
 	var categories models.Category
@@ -46,6 +64,15 @@ func (controller *CategoriesController) save(context *gin.Context) {
 	context.JSON(http.StatusCreated, dtos.NewResponseDto("Ok", "Saved Successfully", categories))
 }
 
+// @BasePath /categories/
+// @Summary Update Categories
+// @Schemes Category
+// @Description Update the manga categories
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /categories/{id} [put]
 func (controller *CategoriesController) update(context *gin.Context) {
 
 	var category models.Category
@@ -75,6 +102,15 @@ func (controller *CategoriesController) update(context *gin.Context) {
 	context.JSON(http.StatusCreated, dtos.NewResponseDto("Ok", "Saved Successfully", category))
 }
 
+// @BasePath /categories/
+// @Summary Update Categories
+// @Schemes
+// @Description Update the manga categories
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /categories/{id} [delete]
 func (controller *CategoriesController) delete(context *gin.Context) {
 
 	id := context.Param("id")

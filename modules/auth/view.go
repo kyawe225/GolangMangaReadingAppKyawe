@@ -21,13 +21,14 @@ type AuthController struct {
 
 // @BasePath /auth/
 
-// @Summary ping example
+// @Summary User Login
 // @Schemes
 // @Description do ping
-// @Tags example
+// @Tags Auth
 // @Accept json
 // @Produce json
-// @Success 200 {string} Helloworld
+// @Success 200 {object} dtos.ResponseDto[map[string]string]
+// @Failure 400 {object} dtos.ResponseDto[string]
 // @Router /auth/login [post]
 func (controller *AuthController) login(context *gin.Context) {
 	var model dtos.LoginDto
@@ -46,13 +47,14 @@ func (controller *AuthController) login(context *gin.Context) {
 
 // @BasePath /auth/
 
-// @Summary ping example
+// @Summary User Register
 // @Schemes
 // @Description do ping
-// @Tags example
+// @Tags Auth
 // @Accept json
 // @Produce json
-// @Success 200 {string} Helloworld
+// @Success 200 {object} dtos.ResponseDto[RegisterDto]
+// @Failure 400 {object} dtos.ResponseDto[string]
 // @Router /auth/register [post]
 func (controller *AuthController) register(context *gin.Context) {
 	var model dtos.RegisterDto

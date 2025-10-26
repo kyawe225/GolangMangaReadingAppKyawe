@@ -1,3 +1,50 @@
+definitions:
+  dtos.RegisterDto:
+    properties:
+      birthdate:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
+  dtos.ResponseDto-RegisterDto:
+    properties:
+      message:
+        type: string
+      model:
+        $ref: '#/definitions/dtos.RegisterDto'
+      status:
+        type: string
+    type: object
+  dtos.ResponseDto-map_string_string:
+    properties:
+      message:
+        type: string
+      model:
+        $ref: '#/definitions/map_string_string'
+      status:
+        type: string
+    type: object
+  dtos.ResponseDto-string:
+    properties:
+      message:
+        type: string
+      model:
+        type: string
+      status:
+        type: string
+    type: object
+  map_string_string:
+    additionalProperties:
+      type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -12,10 +59,14 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
-      summary: ping example
+            $ref: '#/definitions/dtos.ResponseDto-map_string_string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: User Login
       tags:
-      - example
+      - Auth
   /auth/register:
     post:
       consumes:
@@ -27,10 +78,148 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
-      summary: ping example
+            $ref: '#/definitions/dtos.ResponseDto-RegisterDto'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: User Register
       tags:
-      - example
+      - Auth
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: get the all list of categories
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Categories All List
+      tags:
+      - Categories
+    post:
+      consumes:
+      - application/json
+      description: Create the manga categories
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Create Categories
+      tags:
+      - Categories
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Update the manga categories
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Update Categories
+      tags:
+      - Categories
+    put:
+      consumes:
+      - application/json
+      description: Update the manga categories
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Update Categories
+      tags:
+      - Categories
+  /chapters:
+    get:
+      consumes:
+      - application/json
+      description: List All Chapter
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: List All Chapter
+      tags:
+      - Chapters
+    post:
+      consumes:
+      - application/json
+      description: Save Chapter
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Save Chapter
+      tags:
+      - Chapters
+  /chapters/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Chapter
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Delete Chapter
+      tags:
+      - Chapters
+    get:
+      consumes:
+      - application/json
+      description: Detail Chapter
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Detail Chapter
+      tags:
+      - Chapters
+    put:
+      consumes:
+      - application/json
+      description: Update Chapter
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Update Chapter
+      tags:
+      - Chapters
   /example/helloworld:
     get:
       consumes:
@@ -46,4 +235,156 @@ paths:
       summary: ping example
       tags:
       - example
+  /mangas:
+    get:
+      consumes:
+      - application/json
+      description: List all the mangas
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: List All Mangas
+      tags:
+      - Mangas
+    post:
+      consumes:
+      - application/json
+      description: Create Manga
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Create Manga
+      tags:
+      - Mangas
+  /mangas/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Manga
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Delete Manga
+      tags:
+      - Mangas
+    get:
+      consumes:
+      - application/json
+      description: Detail the manga
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Detail Manga
+      tags:
+      - Mangas
+    put:
+      consumes:
+      - application/json
+      description: Update Manga
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Update Manga
+      tags:
+      - Mangas
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: List All User
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: List All User
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Save User
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Save User
+      tags:
+      - Users
+  /user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete User
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Delete User
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Detail User
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Detail User
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update User
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ResponseDto-string'
+      summary: Update User
+      tags:
+      - Users
 swagger: "2.0"

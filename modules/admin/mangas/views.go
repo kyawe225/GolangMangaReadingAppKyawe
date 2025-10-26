@@ -20,6 +20,15 @@ type MangaController struct {
 	repository repositories.IMangaRepository
 }
 
+// @BasePath /manga/
+// @Summary List All Mangas
+// @Schemes
+// @Description List all the mangas
+// @Tags Mangas
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /mangas [get]
 func (controller *MangaController) index(context *gin.Context) {
 	var userId string
 	value, ok := context.Get("user")
@@ -29,6 +38,15 @@ func (controller *MangaController) index(context *gin.Context) {
 	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully Fetched Mangas", controller.repository.GetAll(userId)))
 }
 
+// @BasePath /manga/
+// @Summary Detail Manga
+// @Schemes
+// @Description Detail the manga
+// @Tags Mangas
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /mangas/{id} [get]
 func (controller *MangaController) detail(context *gin.Context) {
 	id := context.Param("id")
 
@@ -39,6 +57,15 @@ func (controller *MangaController) detail(context *gin.Context) {
 	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully Fetched Mangas", controller.repository.FindById(id)))
 }
 
+// @BasePath /manga/
+// @Summary Create Manga
+// @Schemes Manga
+// @Description Create Manga
+// @Tags Mangas
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /mangas [post]
 func (controller *MangaController) save(context *gin.Context) {
 
 	var manga models.Manga
@@ -64,6 +91,15 @@ func (controller *MangaController) save(context *gin.Context) {
 	context.JSON(http.StatusCreated, dtos.NewResponseDto("Ok", "Saved Successfully", manga))
 }
 
+// @BasePath /manga/
+// @Summary Update Manga
+// @Schemes Manga
+// @Description Update Manga
+// @Tags Mangas
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /mangas/{id} [put]
 func (controller *MangaController) update(context *gin.Context) {
 	id := context.Param("id")
 
@@ -98,6 +134,16 @@ func (controller *MangaController) update(context *gin.Context) {
 	context.JSON(http.StatusCreated, dtos.NewResponseDto("Ok", "Saved Successfully", manga))
 }
 
+// @BasePath /manga/
+// @Summary Delete Manga
+// @Schemes
+// @Description Delete Manga
+// @Tags Mangas
+// @Accept json
+// @Produce json
+// @Success 200 {object} dtos.ResponseDto[string]
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /mangas/{id} [delete]
 func (controller *MangaController) delete(context *gin.Context) {
 
 	id := context.Param("id")

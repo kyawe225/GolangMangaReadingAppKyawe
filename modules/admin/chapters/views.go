@@ -20,6 +20,15 @@ func newChapterController(repository repositories.IChapterRepository) chapterCon
 	}
 }
 
+// @BasePath /chapters/
+// @Summary List All Chapter
+// @Schemes
+// @Description List All Chapter
+// @Tags Chapters
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /chapters [get]
 func (controller *chapterController) index(context *gin.Context) {
 	var userId string
 	value, ok := context.Get("user")
@@ -29,6 +38,15 @@ func (controller *chapterController) index(context *gin.Context) {
 	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully fetch chapters", controller.repository.GetAll(userId)))
 }
 
+// @BasePath /chapters/
+// @Summary Detail Chapter
+// @Schemes
+// @Description Detail Chapter
+// @Tags Chapters
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /chapters/{id} [get]
 func (controller *chapterController) detail(context *gin.Context) {
 	id := context.Param("id")
 
@@ -45,6 +63,15 @@ func (controller *chapterController) detail(context *gin.Context) {
 	context.JSON(http.StatusOK, dtos.NewResponseDto("OK", "Successfully Fetched Mangas", chapter))
 }
 
+// @BasePath /chapters/
+// @Summary Save Chapter
+// @Schemes Chapter
+// @Description Save Chapter
+// @Tags Chapters
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /chapters [post]
 func (controller *chapterController) save(context *gin.Context) {
 
 	var chapter models.Chapter
@@ -72,6 +99,15 @@ func (controller *chapterController) save(context *gin.Context) {
 	context.JSON(http.StatusCreated, dtos.NewResponseDto("Ok", "Saved Successfully", chapter))
 }
 
+// @BasePath /chapters/
+// @Summary Update Chapter
+// @Schemes Chapter
+// @Description Update Chapter
+// @Tags Chapters
+// @Accept json
+// @Produce json
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /chapters/{id} [put]
 func (controller *chapterController) update(context *gin.Context) {
 	id := context.Param("id")
 
@@ -106,6 +142,16 @@ func (controller *chapterController) update(context *gin.Context) {
 	context.JSON(http.StatusOK, dtos.NewResponseDto("Ok", "Saved Successfully", chapter))
 }
 
+// @BasePath /chapters/
+// @Summary Delete Chapter
+// @Schemes
+// @Description Delete Chapter
+// @Tags Chapters
+// @Accept json
+// @Produce json
+// @Success 200 {object} dtos.ResponseDto[string]
+// @Failure 400 {object} dtos.ResponseDto[string]
+// @Router /chapters/{id} [delete]
 func (controller *chapterController) delete(context *gin.Context) {
 
 	id := context.Param("id")
